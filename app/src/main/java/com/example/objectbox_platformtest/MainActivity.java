@@ -33,7 +33,10 @@ public class MainActivity extends Activity {
 
         copyDatabaseFromAssets();
 
-        setUpObjectBoxAndDo();
+        // init
+        BoxStore store = MyObjectBox.builder().androidContext(getApplicationContext()).build();
+
+        doObjectBoxThings(store);
     }
 
     private void copyDatabaseFromAssets() {
@@ -63,10 +66,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void setUpObjectBoxAndDo() {
-        // init
-        BoxStore store = MyObjectBox.builder().androidContext(getApplicationContext()).build();
-
+    public static void doObjectBoxThings(BoxStore store) {
         Box<Customer> customerBox = store.boxFor(Customer.class);
         Box<Order> orderBox = store.boxFor(Order.class);
 
@@ -122,7 +122,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void logErrorIfFalse(String message, boolean condition) {
+    public static void logErrorIfFalse(String message, boolean condition) {
         if (condition) {
             Timber.d("%s: %s", message, true);
         } else {

@@ -11,6 +11,9 @@
 
 # ObjectBox
 default.json.bak
+objectbox-windows-x64.dll
 
 # Assets Test-database
 /app/src/main/assets/data.mdb
+/tests/objectbox/data.mdb
+/tests/objectbox/lock.mdb

@@ -1,5 +1,6 @@
 package com.example.objectbox_platformtest.model;
 
+import io.objectbox.BoxStore;
 import io.objectbox.annotation.Entity;
 import io.objectbox.annotation.Id;
 import io.objectbox.relation.ToOne;
@@ -12,7 +13,9 @@ public class Order {
 
     public long tag;
 
-    public ToOne<Customer> customer;
+    public ToOne<Customer> customer = new ToOne<>(this, Order_.customer);
+
+    transient BoxStore __boxStore;
 
     @Override
     public String toString() {
