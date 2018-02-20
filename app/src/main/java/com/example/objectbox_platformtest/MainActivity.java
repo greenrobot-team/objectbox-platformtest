@@ -2,16 +2,24 @@ package com.example.objectbox_platformtest;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.View;
 
 import com.example.objectbox_platformtest.model.Customer;
 import com.example.objectbox_platformtest.model.MyObjectBox;
 import com.example.objectbox_platformtest.model.Order;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
 import io.objectbox.Box;
 import io.objectbox.BoxStore;
+import okio.BufferedSink;
+import okio.Okio;
+import okio.Source;
 import timber.log.Timber;
 
 public class MainActivity extends Activity {
@@ -23,8 +31,40 @@ public class MainActivity extends Activity {
 
         Timber.plant(new Timber.DebugTree());
 
-        // TODO ut: copy database file from assets if present
+        copyDatabaseFromAssets();
 
+        setUpObjectBoxAndDo();
+    }
+
+    private void copyDatabaseFromAssets() {
+        // copy database file from assets if present
+        File filesDir = getFilesDir();
+        File targetDir = new File(filesDir, "objectbox/objectbox/");
+
+        // delete old database files
+        File[] files = targetDir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (!file.delete()) {
+                    throw new RuntimeException("Could not delete old db file");
+                }
+            }
+        }
+
+        //noinspection ResultOfMethodCallIgnored
+        targetDir.mkdirs();
+        File targetFile = new File(targetDir, "data.mdb");
+
+        try (Source source = Okio.source(getAssets().open("data.mdb"));
+             BufferedSink sink = Okio.buffer(Okio.sink(new FileOutputStream(targetFile)))) {
+            sink.writeAll(source);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void setUpObjectBoxAndDo() {
+        // init
         BoxStore store = MyObjectBox.builder().androidContext(getApplicationContext()).build();
 
         Box<Customer> customerBox = store.boxFor(Customer.class);
@@ -87,6 +127,21 @@ public class MainActivity extends Activity {
             Timber.d("%s: %s", message, true);
         } else {
             Timber.e("%s: %s", message, false);
+        }
+    }
+
+    public void onClickExportDb(View view) {
+        // copy database file from assets if present
+        File filesDir = getFilesDir();
+        File sourceFile = new File(filesDir, "objectbox/objectbox/data.mdb");
+
+        File targetFile = new File(getExternalFilesDir(null), "data.mdb");
+
+        try (Source source = Okio.source(new FileInputStream(sourceFile));
+             BufferedSink sink = Okio.buffer(Okio.sink(new FileOutputStream(targetFile)))) {
+            sink.writeAll(source);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

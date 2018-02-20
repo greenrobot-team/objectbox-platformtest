@@ -11,3 +11,6 @@
 
 # ObjectBox
 default.json.bak
+
+# Assets Test-database
+/app/src/main/assets/data.mdb
