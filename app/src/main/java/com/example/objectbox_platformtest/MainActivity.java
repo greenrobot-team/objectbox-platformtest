@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
@@ -41,28 +42,32 @@ public class MainActivity extends Activity {
 
     private void copyDatabaseFromAssets() {
         // copy database file from assets if present
-        File filesDir = getFilesDir();
-        File targetDir = new File(filesDir, "objectbox/objectbox/");
+        try (InputStream sourceStream = getAssets().open("data.mdb")) {
+            File filesDir = getFilesDir();
+            File targetDir = new File(filesDir, "objectbox/objectbox/");
 
-        // delete old database files
-        File[] files = targetDir.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (!file.delete()) {
-                    throw new RuntimeException("Could not delete old db file");
+            // delete old database files
+            File[] files = targetDir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (!file.delete()) {
+                        throw new RuntimeException("Could not delete old db file");
+                    }
                 }
             }
-        }
 
-        //noinspection ResultOfMethodCallIgnored
-        targetDir.mkdirs();
-        File targetFile = new File(targetDir, "data.mdb");
+            //noinspection ResultOfMethodCallIgnored
+            targetDir.mkdirs();
+            File targetFile = new File(targetDir, "data.mdb");
 
-        try (Source source = Okio.source(getAssets().open("data.mdb"));
-             BufferedSink sink = Okio.buffer(Okio.sink(new FileOutputStream(targetFile)))) {
-            sink.writeAll(source);
+            try (Source source = Okio.source(sourceStream);
+                 BufferedSink sink = Okio.buffer(Okio.sink(new FileOutputStream(targetFile)))) {
+                sink.writeAll(source);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            Timber.w("Did not copy database from assets, using existing or new database.");
         }
     }
 
